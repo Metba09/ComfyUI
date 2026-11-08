@@ -16,12 +16,12 @@ make check          # lint + tests rapides + smoke test (~2 min) — à lancer a
 make offline-check  # idem dans un espace réseau coupé : preuve que rien ne dépend d'Internet
 ```
 
-Autres cibles : `make lint`, `make format`, `make test-fast` (~1,5 min), `make test` (tests-unit complet, ~5 min), `make test-exec` (~3 min),
+Autres cibles : `make lint`, `make format`, `make test-fast` (~1,5 min), `make test` (tests-unit complet, ~7 min), `make test-exec` (~2,5 min),
 `make test-all`, `make smoke`, `make run` (serveur local), `make bundle`. Cibler un test : `make test ARGS='tests-unit/comfy_test -k nom'`.
 Un appel d'outil dure au plus ~10 min : lancer `make test` et `make test-all` avec un délai généreux.
 Sans `make` : `bash scripts/sandbox/{setup,check,lint,test,smoke...}`.
 
-Résultats de référence (sandbox, hors-ligne) : tests-unit 3365 réussis / 94 ignorés / 0 échec ; `make smoke` OK (693 nœuds, 3 workflows).
+Résultats de référence (sandbox, réseau coupé) : tests-unit 3365 réussis / 94 ignorés / 0 échec ; tests/execution 342 réussis / 7 ignorés / 5 déselectionnés (voir limites) ; `make smoke` OK (693 nœuds, 3 workflows).
 
 ### Dépendances vendorisées
 
@@ -46,7 +46,7 @@ Résultats de référence (sandbox, hors-ligne) : tests-unit 3365 réussis / 94 
 
 ### Limites connues (mesurées, pas des bugs du code)
 
-- `tests/execution` : les variantes du cache « RAM pressure » (`server3`, et `test_a_cached_rerun_keeps_the_preview`) sont exclues par `scripts/sandbox/test.sh`.
+- `tests/execution` : 5 tests sont déselectionnés par `scripts/sandbox/test.sh` (4 en variante `server3` de `test_execution.py` : `test_full_cache`, `test_partial_cache`, `test_custom_is_changed`, `test_is_changed_with_outputs`, et `test_exr_previews.py::test_a_cached_rerun_keeps_the_preview`).
   Ce cache exige ≥ 2 Go de RAM libre et évince ses entrées quand le sandbox en a moins ; les assertions « déjà en cache » échouent alors.
 - Les tests se lancent seuls grâce au plugin `sandbox/pytest_force_cpu.py` (force `--cpu` : le torch CUDA de PyPI plante à l'import sans pilote NVIDIA, contrairement au torch CPU de la CI amont).
 

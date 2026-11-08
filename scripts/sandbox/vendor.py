@@ -103,20 +103,47 @@ def write_locks(entries):
     (VENDOR / "MANIFEST.sha256").write_text("\n".join(manifest) + "\n")
 
 
+def parse_lock(path):
+    for line in path.read_text().splitlines():
+        if line.strip():
+            req, _, h = line.partition(" --hash=sha256:")
+            name, _, ver = req.partition("==")
+            yield name, ver, h.strip()
+
+
+def pypi_url(name, ver, digest):
+    """URL du fichier de PyPI dont l'empreinte SHA-256 est celle du lockfile (jamais un autre fichier)."""
+    raw = subprocess.run(["curl", "-fsSL", "--retry", "4", "--retry-delay", "3", f"https://pypi.org/pypi/{name}/{ver}/json"],
+                         check=True, capture_output=True, text=True).stdout
+    for f in json.loads(raw)["urls"]:
+        if f["digests"]["sha256"] == digest:
+            return f["url"]
+    raise SystemExit(f"{name}=={ver} : aucun fichier de PyPI ne correspond à l'empreinte du lockfile")
+
+
 def fetch_from_locks(a):
-    """pip vérifie chaque empreinte (--require-hashes) : un wheel altéré ou différent est refusé."""
+    """Re-télécharge EXACTEMENT les fichiers des lockfiles : URL retrouvée par empreinte, téléchargement parallèle
+    et repris si interrompu, empreinte revérifiée à l'arrivée."""
     groups = [("wheels", "requirements.lock.txt")]
     if not a.no_media:
         groups.append(("wheels-media", "requirements.media.lock.txt"))
     groups.append(("wheels-cuda", "requirements.cuda.lock.txt"))
     if a.with_cuda_optional:
         groups.append(("wheels-cuda-optional", "requirements.cuda-optional.lock.txt"))
+    todo = []
     for d, lock in groups:
-        (VENDOR / d).mkdir(exist_ok=True)
-        subprocess.run([sys.executable, "-m", "pip", "download", "--quiet", "--no-deps", "--require-hashes",
-                        "-d", str(VENDOR / d), "-r", str(VENDOR / lock)], check=True)
-        say(f"{d}: OK")
+        for name, ver, digest in parse_lock(VENDOR / lock):
+            todo.append((name, ver, digest, VENDOR / d))
+
+    def one(t):
+        name, ver, digest, dest = t
+        return fetch((name, ver, pypi_url(name, ver, digest), digest, dest))
+
+    with cf.ThreadPoolExecutor(a.jobs) as ex:
+        for name, state in ex.map(one, todo):
+            say(f"{name}: {state}")
     (VENDOR / "PYTHON_VERSION").write_text("%d.%d\n" % sys.version_info[:2])
+    say(f"{len(todo)} wheels vérifiés dans {VENDOR}")
     return 0
 
 

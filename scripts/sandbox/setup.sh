@@ -5,11 +5,12 @@
 #   OFFLINE_STRICT=1 ...                     # échoue au lieu de contacter PyPI si le wheelhouse manque
 # Réseau : uniquement PyPI, et seulement si vendor/wheels* est absent (re-téléchargement exact, empreintes vérifiées).
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Python SYSTÈME, résolu avant que env.sh ne place le venv en tête du PATH (le venv est supprimé puis recréé plus bas).
+PY="$(command -v "${PYTHON:-python3}")" || { echo "ERREUR : python3 introuvable" >&2; exit 1; }
 # shellcheck disable=SC1091
 . "$HERE/env.sh"
 
 MEDIA="${MEDIA:-1}"
-PY="${PYTHON:-python3}"
 
 [ -f vendor/requirements.lock.txt ] || die "vendor/requirements.lock.txt manquant : le bundle est incomplet"
 want="$(tr -d '[:space:]' < vendor/PYTHON_VERSION)"
@@ -21,6 +22,14 @@ groups="wheels wheels-cuda"
 
 stamp="$( { cat vendor/requirements*.lock.txt vendor/PYTHON_VERSION; echo "MEDIA=$MEDIA"; } | sha256sum | cut -d' ' -f1)"
 
+lock_of() {
+  case "$1" in
+    wheels) echo requirements.lock.txt ;;
+    wheels-cuda) echo requirements.cuda.lock.txt ;;
+    wheels-media) echo requirements.media.lock.txt ;;
+  esac
+}
+
 installed_ok() {
   [ -x "$VENV/bin/python" ] && [ "$(cat "$VENV/.sandbox-stamp" 2>/dev/null)" = "$stamp" ] \
     && "$VENV/bin/python" -c 'import torch, aiohttp, yaml, sqlalchemy, alembic, PIL, numpy, safetensors' >/dev/null 2>&1
@@ -30,9 +39,12 @@ if installed_ok; then
   say "setup : environnement déjà à jour ($VENV)"
 else
   # 1. wheelhouse : présent, sinon re-téléchargement exact depuis les lockfiles.
+  # « complet » = autant de wheels que de lignes dans le lockfile du groupe (un téléchargement interrompu est détecté).
   missing=0
   for d in $groups; do
-    compgen -G "vendor/$d/*.whl" >/dev/null || missing=1
+    n_lock="$(grep -c . "vendor/$(lock_of "$d")")"
+    n_whl="$(find "vendor/$d" -maxdepth 1 -name '*.whl' 2>/dev/null | wc -l)"
+    [ "$n_whl" -ge "$n_lock" ] || missing=1
   done
   if [ "$missing" = "1" ]; then
     [ "${OFFLINE_STRICT:-0}" = "1" ] && die "wheelhouse absent et OFFLINE_STRICT=1"
@@ -48,11 +60,7 @@ else
   rm -rf "$VENV"
   "$PY" -m venv "$VENV"
   for d in $groups; do
-    case "$d" in
-      wheels) lock=requirements.lock.txt ;;
-      wheels-cuda) lock=requirements.cuda.lock.txt ;;
-      wheels-media) lock=requirements.media.lock.txt ;;
-    esac
+    lock="$(lock_of "$d")"
     say "setup : installation hors-ligne de $d"
     "$VENV/bin/pip" install --quiet --no-index --find-links "vendor/$d" --no-deps --require-hashes -r "vendor/$lock"
   done

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Tests avec les bons réglages du sandbox. Usage : test.sh [unit|fast|exec|all] [arguments pytest...]
-#   unit : tests-unit complet (~5 min)           fast : sous-ensemble rapide (~1,5 min)
-#   exec : tests/execution (~3 min, serveur local) all  : unit + exec
+#   unit : tests-unit complet (~7 min)           fast : sous-ensemble rapide (~1,5 min)
+#   exec : tests/execution (~2,5 min, serveur local) all  : unit + exec
 # NETOFF=1 : exécute dans un espace réseau coupé (preuve hors-ligne).
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
@@ -21,11 +21,14 @@ OUT="$(mktemp -d /tmp/comfy-test-out.XXXXXX)"
 trap 'rm -rf "$OUT"' EXIT
 
 run_exec() {
-  # Exclus : les variantes qui utilisent le cache « RAM pressure » (défaut de ComfyUI). Il exige au moins 2 Go de RAM
+  # Exclus : 5 tests qui dépendent du cache « RAM pressure » (défaut de ComfyUI, variante server3). Il exige au moins 2 Go de RAM
   # libre ; le sandbox (~6 Go au total, souvent < 2,5 Go libres) fait évincer le cache et les assertions « déjà en cache »
   # échouent. Limite de l'environnement, pas du code (voir CLAUDE.md, « Session Chat »).
+  local t=tests/execution/test_execution.py::TestExecution
   run_cmd "${PYTEST[@]}" tests/execution --output_dir "$OUT" --skip-timing-checks \
-    -k "not server3 and not test_a_cached_rerun_keeps_the_preview" "$@"
+    --deselect "$t::test_full_cache[server3]" --deselect "$t::test_partial_cache[server3]" \
+    --deselect "$t::test_custom_is_changed[server3]" --deselect "$t::test_is_changed_with_outputs[server3]" \
+    --deselect tests/execution/test_exr_previews.py::test_a_cached_rerun_keeps_the_preview "$@"
 }
 
 case "$mode" in
