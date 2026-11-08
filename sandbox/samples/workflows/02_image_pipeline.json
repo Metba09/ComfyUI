@@ -1,0 +1,8 @@
+{
+  "1": {"class_type": "LoadImage", "inputs": {"image": "example.png"}},
+  "2": {"class_type": "ImageScale", "inputs": {"image": ["1", 0], "upscale_method": "nearest-exact", "width": 128, "height": 128, "crop": "disabled"}},
+  "3": {"class_type": "ImageInvert", "inputs": {"image": ["2", 0]}},
+  "4": {"class_type": "EmptyImage", "inputs": {"width": 128, "height": 128, "batch_size": 1, "color": 3355443}},
+  "5": {"class_type": "ImageBlend", "inputs": {"image1": ["3", 0], "image2": ["4", 0], "blend_factor": 0.5, "blend_mode": "normal"}},
+  "6": {"class_type": "SaveImage", "inputs": {"images": ["5", 0], "filename_prefix": "sandbox_smoke_pipeline"}}
+}

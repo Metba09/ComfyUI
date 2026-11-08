@@ -25,3 +25,13 @@ filtered-openapi.yaml
 uv.lock
 .comfy_environment
 /previews/
+
+# --- bundle hermétique (session Chat) ---
+/.env
+/vendor/wheels/
+/vendor/wheels-cuda/
+/vendor/wheels-cuda-optional/
+/vendor/wheels-media/
+/vendor/resolve-report.json
+/dist/
+/tests/inference/samples/
