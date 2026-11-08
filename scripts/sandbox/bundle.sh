@@ -30,8 +30,8 @@ git diff "$BASE"..HEAD > "$OUT/comfyui-sandbox.patch"
 for g in ${GROUPS_LIST//,/ }; do
   case "$g" in core) d=wheels ;; cuda) d=wheels-cuda ;; media) d=wheels-media ;; *) die "groupe inconnu : $g" ;; esac
   compgen -G "vendor/$d/*.whl" >/dev/null || die "vendor/$d vide : lancer 'make fetch' d'abord"
-  say "bundle : wheelhouse $g (morceaux de ${MB} Mo)"
-  tar -cf - -C vendor "$d" | split -b "${MB}M" -d -a 3 - "$OUT/comfyui-wheelhouse-$g.tar.part-"
+  say "bundle : wheelhouse $g (morceaux de ${MB} Mo décimaux)"
+  tar -cf - -C vendor "$d" | split -b "$((MB * 1000 * 1000))" -d -a 3 - "$OUT/comfyui-wheelhouse-$g.tar.part-"
 done
 
 cat > "$OUT/restore.sh" <<'EOS'
