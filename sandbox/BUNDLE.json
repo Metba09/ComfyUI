@@ -24,8 +24,8 @@
     "repo": "Metba09/claude-memory (privé)",
     "path": "livrables/comfyui-sandbox/",
     "tarball": "comfyui-source.tar.gz",
-    "tarball_sha256": "8ad3e7649b524a5ecea80ac218943c50c65fa763dffd1167ecfcd23d919b10c0",
-    "source_commit": "477e996892971ef11c4b47845dafbe8895962e11",
+    "tarball_sha256": "e2a26c9d67675897d6d5e41e0b47f1af96f914672ff9e90a75b484e29d145e43",
+    "source_commit": "b4dd604b44f687cf5b562f3286854a29b6baf437",
     "note": "Tarball construit depuis source_commit, antérieur à ce fichier (pas de référence circulaire)."
   }
 }
