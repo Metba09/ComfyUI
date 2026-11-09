@@ -24,6 +24,8 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 
 say "bundle : source (git archive HEAD)"
 git archive --format=tar.gz --prefix=ComfyUI/ -o "$OUT/comfyui-source.tar.gz" HEAD
+say "bundle : empreintes de tous les fichiers suivis (FILES.sha256)"
+git ls-files -z | xargs -0 sha256sum -- > "$OUT/FILES.sha256"
 say "bundle : patch par rapport à $BASE"
 git diff "$BASE"..HEAD > "$OUT/comfyui-sandbox.patch"
 
@@ -43,6 +45,7 @@ DEST="${1:-$PWD}"
 ( cd "$HERE" && sha256sum -c SHA256SUMS )
 mkdir -p "$DEST"
 tar -xzf "$HERE/comfyui-source.tar.gz" -C "$DEST"
+( cd "$DEST/ComfyUI" && sha256sum -c --quiet "$HERE/FILES.sha256" ) && echo "fichiers du dépôt : empreintes OK"
 for g in core cuda media; do
   parts=("$HERE"/comfyui-wheelhouse-$g.tar.part-*)
   [ -e "${parts[0]}" ] && cat "${parts[@]}" | tar -xf - -C "$DEST/ComfyUI/vendor"
@@ -59,6 +62,7 @@ cat > "$OUT/README.md" <<'EOR'
 | `comfyui-source.tar.gz` | dépôt ComfyUI reconditionné (scripts, lockfiles, CLAUDE.md, exemples), sans wheels |
 | `comfyui-sandbox.patch` | différences avec l'amont |
 | `comfyui-wheelhouse-<groupe>.tar.part-NNN` | (optionnel) wheels vendorisés, découpés ; groupes : core, cuda, media |
+| `FILES.sha256` | empreinte de chaque fichier du dépôt (vérifiée par `restore.sh`) |
 | `SHA256SUMS`, `restore.sh` | vérification et restauration |
 
 Sans les morceaux de wheelhouse, `make setup` re-télécharge exactement les mêmes wheels depuis PyPI (empreintes

@@ -4,7 +4,7 @@ SHELL := /bin/bash
 ARGS ?=
 BUNDLE_ARGS ?=
 
-.PHONY: help setup vendor fetch verify-vendor lint format test test-fast test-exec test-all smoke check offline-check run bundle probe-cuda verify-bundle clean
+.PHONY: help setup vendor fetch verify-vendor lint format test test-fast test-exec test-all smoke check offline-check run bundle probe-cuda verify-bundle licenses clean
 
 help:
 	@echo "make setup          installe tout, hors-ligne, sans saisie (idempotent)   [MEDIA=0 : sans templates médias]"
@@ -20,6 +20,7 @@ help:
 	@echo "make vendor         re-résout les versions et réécrit les lockfiles (PyPI requis)"
 	@echo "make verify-vendor  vérifie les empreintes du wheelhouse"
 	@echo "make verify-bundle  contrôle sandbox/BUNDLE.json (ARGS='--livrable DIR' : + tarball de claude-memory)"
+	@echo "make licenses     extrait vendor/LICENSES depuis les wheels (nécessite le wheelhouse)"
 	@echo "make bundle         archives source + patch (BUNDLE_ARGS='--groups core,cuda,media' ajoute le wheelhouse)"
 
 setup:
@@ -69,6 +70,9 @@ bundle:
 
 verify-bundle:
 	@python3 scripts/sandbox/verify_bundle.py $(ARGS)
+
+licenses:
+	@python3 scripts/sandbox/licenses.py $(ARGS)
 
 probe-cuda:
 	@bash scripts/sandbox/probe_cuda.sh
