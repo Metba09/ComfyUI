@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "description": "Pointeur du dépôt vers le livrable miroir de claude-memory (voir scripts/sandbox/verify_bundle.py).",
+  "upstream_base": "0decb39ee5b5e17c200334589fc317dbbe98310e",
+  "python": "3.13",
+  "branch": "sandbox-hermetic",
+  "wheelhouse": {
+    "source": "PyPI, retrouvé par empreinte SHA-256 (make fetch)",
+    "stored_in_git": false,
+    "approx_size_gb": 3.1,
+    "groups": {
+      "core": "813 Mo",
+      "cuda": "1,8 Go",
+      "media": "527 Mo"
+    }
+  },
+  "lockfiles_sha256": {
+    "requirements.cuda-optional.lock.txt": "991d153bebfd32c724da1092dc50ce320815430f0a36571bf995e309e28abf0e",
+    "requirements.cuda.lock.txt": "1ddc6198c1fe53287fff33a864c0d2569b3d3fbe4eae2d8e1e5343754c3a5ffa",
+    "requirements.lock.txt": "b962baafca00a304769cfed596db0574583ab4549335875f02eecaa3a970e208",
+    "requirements.media.lock.txt": "e631ec3bd1b3ea6e8cb17460813f8e8194fbda32e93c633522eb9d495654b610"
+  },
+  "bundle": {
+    "repo": "Metba09/claude-memory (privé)",
+    "path": "livrables/comfyui-sandbox/",
+    "tarball": "comfyui-source.tar.gz",
+    "tarball_sha256": "8ad3e7649b524a5ecea80ac218943c50c65fa763dffd1167ecfcd23d919b10c0",
+    "source_commit": "477e996892971ef11c4b47845dafbe8895962e11",
+    "note": "Tarball construit depuis source_commit, antérieur à ce fichier (pas de référence circulaire)."
+  }
+}

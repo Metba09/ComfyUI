@@ -31,7 +31,10 @@ fi
 
 say "lint : syntaxe des scripts shell et JSON d'exemple"
 for f in setup.sh scripts/sandbox/*.sh; do bash -n "$f" || fail=1; done
-for f in sandbox/samples/workflows/*.json default_workflow.json; do python -m json.tool "$f" >/dev/null || { say "  JSON invalide : $f"; fail=1; }; done
+for f in sandbox/samples/workflows/*.json sandbox/BUNDLE.json default_workflow.json; do python -m json.tool "$f" >/dev/null || { say "  JSON invalide : $f"; fail=1; }; done
+
+say "lint : pointeur BUNDLE.json (lockfiles et Python)"
+python scripts/sandbox/verify_bundle.py || fail=1
 
 say "lint : intégrité du wheelhouse (empreintes)"
 if compgen -G "vendor/wheels/*.whl" >/dev/null; then python scripts/sandbox/vendor.py --verify || fail=1; else say "  wheelhouse absent (ignoré)"; fi

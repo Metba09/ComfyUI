@@ -31,6 +31,7 @@ Résultats de référence (sandbox, réseau coupé) : tests-unit 3365 réussis /
 - Pourquoi 3 Go : l'index CPU de PyTorch est bloqué dans le sandbox, donc `torch` vient de PyPI (build CUDA). Il refuse de s'importer sans 11 libs NVIDIA
   (`wheels-cuda`, 1,8 Go) même sans GPU ; 8 autres paquets NVIDIA/triton sont inutiles et exclus (mesuré par `make probe-cuda`).
   Les templates de workflows (`wheels-media`, 527 Mo) s'installent par défaut ; `MEDIA=0 make setup` les saute.
+- `sandbox/BUNDLE.json` pointe vers le livrable miroir (`Metba09/claude-memory`, privé, `livrables/comfyui-sandbox/`) : empreintes des lockfiles et du tarball source. `make verify-bundle` contrôle les lockfiles ; avec `ARGS='--livrable DIR'` il contrôle aussi le tarball. Le dépôt est la source de vérité, le livrable un miroir ; après `make vendor`, régénérer le livrable puis ce pointeur.
 - Rafraîchir les versions : `make vendor` (réécrit les lockfiles, PyPI requis) puis revalider avec `make check`.
 
 ### Inutilisable dans le sandbox
