@@ -24,11 +24,13 @@ run_exec() {
   # Exclus : 5 tests qui dépendent du cache « RAM pressure » (défaut de ComfyUI, variante server3). Il exige au moins 2 Go de RAM
   # libre ; le sandbox (~6 Go au total, souvent < 2,5 Go libres) fait évincer le cache et les assertions « déjà en cache »
   # échouent. Limite de l'environnement, pas du code (voir CLAUDE.md, « Session Chat »).
+  # COMFY_ALL_EXEC=1 : ne rien déselectionner (machine avec assez de RAM, ex. runner Actions de 7 Go : recette runner/).
   local t=tests/execution/test_execution.py::TestExecution
-  run_cmd "${PYTEST[@]}" tests/execution --output_dir "$OUT" --skip-timing-checks \
-    --deselect "$t::test_full_cache[server3]" --deselect "$t::test_partial_cache[server3]" \
-    --deselect "$t::test_custom_is_changed[server3]" --deselect "$t::test_is_changed_with_outputs[server3]" \
-    --deselect tests/execution/test_exr_previews.py::test_a_cached_rerun_keeps_the_preview "$@"
+  local skip=(--deselect "$t::test_full_cache[server3]" --deselect "$t::test_partial_cache[server3]"
+              --deselect "$t::test_custom_is_changed[server3]" --deselect "$t::test_is_changed_with_outputs[server3]"
+              --deselect tests/execution/test_exr_previews.py::test_a_cached_rerun_keeps_the_preview)
+  [ "${COMFY_ALL_EXEC:-0}" = "1" ] && skip=()
+  run_cmd "${PYTEST[@]}" tests/execution --output_dir "$OUT" --skip-timing-checks "${skip[@]}" "$@"
 }
 
 case "$mode" in

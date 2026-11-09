@@ -18,6 +18,8 @@ make offline-check  # idem dans un espace réseau coupé : preuve que rien ne d�
 
 Autres cibles : `make lint`, `make format`, `make test-fast` (~1,5 min), `make test` (tests-unit complet, ~7 min), `make test-exec` (~2,5 min),
 `make test-all`, `make smoke`, `make run` (serveur local), `make bundle`. Cibler un test : `make test ARGS='tests-unit/comfy_test -k nom'`.
+`COMFY_ALL_EXEC=1 make test-exec` inclut les 5 tests normalement déselectionnés (≥ 2 Go de RAM libre requis).
+`make smoke ARGS='--workflow g.json --keep-output DIR --workflow-timeout 1800'` garde les images produites.
 Un appel d'outil dure au plus ~10 min : lancer `make test` et `make test-all` avec un délai généreux.
 Sans `make` : `bash scripts/sandbox/{setup,check,lint,test,smoke...}`.
 
@@ -54,6 +56,10 @@ Résultats de référence (sandbox, réseau coupé) : tests-unit 3365 réussis /
 ### Données d'exemple locales
 
 `sandbox/samples/workflows/*.json` : graphes API sans modèle (utilisés par `make smoke`), à copier pour en écrire d'autres. `input/example.png` est l'image d'entrée.
+
+### Runner claude-bridge (RAM suffisante, réseau ouvert)
+
+`scripts/sandbox/runner/comfyui-runner.sh` (modes `info`, `tests`, `generate` avec téléchargement vérifié par SHA-256 d'un `.safetensors`) : voir `scripts/sandbox/runner/README.md`. À montrer à l'utilisateur avant tout envoi ; non testé de bout en bout.
 
 ### Commandes à lire à la demande
 

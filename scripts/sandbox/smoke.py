@@ -4,6 +4,7 @@ le frontend embarqué et le moteur d'exécution fonctionnent, puis exécute des 
 
     python scripts/sandbox/smoke.py                              # tous les graphes de sandbox/samples/workflows
     python scripts/sandbox/smoke.py --workflow chemin.json       # un graphe précis (format API)
+    python scripts/sandbox/smoke.py --workflow g.json --keep-output sortie/ --workflow-timeout 1800   # garder les images
     python scripts/sandbox/netoff.py -- python scripts/sandbox/smoke.py   # idem, réseau coupé (preuve hors-ligne)
 
 Code de sortie 0 = tout est bon. Le journal du serveur est affiché en cas d'échec.
@@ -83,6 +84,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--workflow", action="append", help="graphe au format API (répétable)")
     ap.add_argument("--startup-timeout", type=int, default=180)
+    ap.add_argument("--workflow-timeout", type=int, default=120, help="secondes par workflow (inférence CPU : prévoir large)")
+    ap.add_argument("--keep-output", metavar="DIR", help="copie les images produites dans DIR avant de nettoyer le dossier temporaire")
     a = ap.parse_args()
 
     workflows = a.workflow or sorted(glob.glob(str(ROOT / "sandbox" / "samples" / "workflows" / "*.json")))
@@ -129,7 +132,7 @@ def main():
 
         for path in workflows:
             name = Path(path).name
-            n = run_workflow(base, name, json.loads(Path(path).read_text()), out_dir)
+            n = run_workflow(base, name, json.loads(Path(path).read_text()), out_dir, timeout=a.workflow_timeout)
             say(f"workflow : {name} OK ({n} image(s))")
 
         server_log = log_path.read_text(errors="replace")
@@ -149,6 +152,9 @@ def main():
         if not ok:
             say("---- fin du journal serveur ----")
             say("\n".join(log_path.read_text(errors="replace").splitlines()[-30:]))
+        if a.keep_output and out_dir.exists():
+            shutil.copytree(out_dir, a.keep_output, dirs_exist_ok=True)
+            say(f"sorties copiées dans {a.keep_output}")
         shutil.rmtree(tmp, ignore_errors=True)
     say("smoke : OK" if ok else "smoke : ÉCHEC")
     return 0 if ok else 1
